@@ -1,0 +1,57 @@
+
+
+{% if result == 1 %}
+    <div class="modal-header">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body border-0">
+        <h3>Спасибо, Ваша заявка принята.</h3>
+        <p>Скоро с Вами свяжется менеджер!</p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>        
+    </div>
+{% else %}
+    <div class="modal-header">
+        <h1 class="modal-title fs-4" id="tnModalLabel">Оставить заявку</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <form data-request="onTelegramNoticeSendForm" id="form-1" data-request-update="{ 'TelegramNotice::order-modal-form': '#order-modal-form-div' }">
+            <input name="tag" type="hidden">
+            <input name="nm" class="form-control form-control-lg  my-2" type="text" placeholder="Введите Ваше Имя">
+            <input name="ph" minlength="5" class="form-control form-control-lg my-2" type="text" placeholder="Номер телефона" required> 
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-warning btn-lg my-2 modal-btn" >Оставить заявку</button>
+            </div>
+        </form>
+    </div>
+
+    <script>        
+        const orderModal = document.getElementById('tnModal')
+        if (orderModal) {
+            console.log('ghjdt');
+            orderModal.addEventListener('show.bs.modal', event => {
+                // Button that triggered the modal
+                const button = event.relatedTarget
+                // Extract info from data-bs-* attributes
+                const recipient = button.getAttribute('data-bs-whatever')
+                // If necessary, you could initiate an Ajax request here
+                // and then do the updating in a callback.
+
+                // Update the modal's content.
+                const modalTitle = orderModal.querySelector('.modal-title')
+                const modalBodyInput = orderModal.querySelector('.modal-body input')
+                const modalBtn = orderModal.querySelector('.modal-btn')
+
+                modalTitle.textContent = `${recipient}`
+                modalBodyInput.value = recipient
+                modalBtn.textContent = `${recipient}`
+                })
+        }
+    </script>
+{% endif %}
+
+
+
