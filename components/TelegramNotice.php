@@ -47,11 +47,21 @@ class TelegramNotice extends ComponentBase
         $name = preg_replace("/&#?[a-z0-9]+;/i","", input('nm'));
         $tag = preg_replace("/&#?[a-z0-9]+;/i","", input('tag'));
 
-        if (empty($this->property('sitename')) || empty($this->property('token'))) return false;        
-    
-        $text = "<b>".$this->page->title."</b>\n".$tag."\nИмя: <code>".$name."</code>\nТел.: <code>".$phone_number."</code>\n";
-    
-        if (!isset($name)) $name = 'Без имени';
+        if (is_array(input('arr')))
+            foreach (input('arr') as $key => $arrValue)
+            {
+                if ($key === array_key_first(input('arr'))) $arr = preg_replace("/&#?[a-z0-9]+;/i","", $arrValue);
+                else $arr = $arr."\n".preg_replace("/&#?[a-z0-9]+;/i","", $arrValue);
+            }
+
+        if (empty($this->property('sitename')) || empty($this->property('token'))) return false; 
+        
+        $text = "<b>".$this->page->title."</b>";
+        if (!empty($name)) $text .= "\nИмя: <code>".$name."</code>";
+        if (!empty($phone_number)) $text .= "\nТел.: <code>".$phone_number."</code>";
+        if (!empty($tag)) $text .= "\n".$tag;
+        if (!empty($arr)) $text .= "\n".$arr; 
+
         if (strlen($phone_number)>4)
         {
             $ch = curl_init();
