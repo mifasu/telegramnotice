@@ -1,6 +1,8 @@
 <?php namespace Dmdev\Telegramnotice\Components;
 
 use Cms\Classes\ComponentBase;
+use Illuminate\Support\Facades\URL;
+
 
 /**
  * TelegramNotice Component
@@ -46,6 +48,7 @@ class TelegramNotice extends ComponentBase
         $phone_number = preg_replace('/[^0-9.]+/', '', input('ph'));
         $name = preg_replace("/&#?[a-z0-9]+;/i","", input('nm'));
         $tag = preg_replace("/&#?[a-z0-9]+;/i","", input('tag'));
+        $from = preg_replace("/&#?[a-z0-9]+;/i","", input('from'));
 
         if (is_array(input('arr')))
             foreach (input('arr') as $key => $arrValue)
@@ -53,10 +56,10 @@ class TelegramNotice extends ComponentBase
                 if ($key === array_key_first(input('arr'))) $arr = preg_replace("/&#?[a-z0-9]+;/i","", $arrValue);
                 else $arr = $arr."\n".preg_replace("/&#?[a-z0-9]+;/i","", $arrValue);
             }
-
-        if (empty($this->property('sitename')) || empty($this->property('token'))) return false; 
         
-        $text = "<b>".$this->page->title."</b>";
+        $text = "Сайт: ".preg_replace('/^https?:\/\//', '', URL::to('/'));        
+        if (!empty($from)) $text .= "\n<b>".$from."</b>";         
+        elseif (!empty($this->page->title)) $text .= "\n".$this->page->title;           
         if (!empty($name)) $text .= "\nИмя: <code>".$name."</code>";
         if (!empty($phone_number)) $text .= "\nТел.: <code>".$phone_number."</code>";
         if (!empty($tag)) $text .= "\n".$tag;
@@ -64,11 +67,21 @@ class TelegramNotice extends ComponentBase
 
         if (strlen($phone_number)>4)
         {
-            $ch = curl_init();
+            if ($this->sendTelegram($text)) $this->page['result'] = true;
+        }
+    }
+
+    function sendTelegram($text)
+    {
+
+        $sitename = preg_replace('/^https?:\/\//', '', URL::to('/'));
+        $token = md5($sitename.'2207');
+
+        $ch = curl_init();
             curl_setopt_array(
                 $ch,
                 array(
-                    CURLOPT_URL => 'https://dmdev.ru/api/botPechkin/'.$this->property('sitename').':'.$this->property('token').'/sendMessage',
+                    CURLOPT_URL => 'https://dmdev.ru/api/botPechkin/'.$sitename.':'.$token.'/sendMessage',
                     CURLOPT_POST => TRUE,
                     CURLOPT_RETURNTRANSFER => TRUE,
                     CURLOPT_TIMEOUT => 10,
@@ -78,8 +91,7 @@ class TelegramNotice extends ComponentBase
                     ),
                 )
             );
-            curl_exec($ch);
-            $this->page['result'] = true;
-        }
+        curl_exec($ch);
+        return true;        
     }
 }
