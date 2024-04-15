@@ -57,7 +57,7 @@ class TelegramNotice extends ComponentBase
                 else $arr = $arr."\n".preg_replace("/&#?[a-z0-9]+;/i","", $arrValue);
             }
         
-        $text = "Сайт: ".preg_replace('/^https?:\/\//', '', URL::to('/'));        
+        $text = "".preg_replace('/^https?:\/\//', '', URL::to('/'));        
         if (!empty($from)) $text .= "\n<b>".$from."</b>";         
         elseif (!empty($this->page->title)) $text .= "\n".$this->page->title;           
         if (!empty($name)) $text .= "\nИмя: <code>".$name."</code>";
