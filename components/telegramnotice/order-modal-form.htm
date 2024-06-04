@@ -21,7 +21,7 @@
             <input name="tag" type="hidden">
             <input name="from" type="hidden" value="{{ this.page.title }}">
             <input name="nm" class="form-control form-control-lg  my-2" type="text" placeholder="Введите Ваше Имя">
-            <input name="ph" minlength="5" class="form-control form-control-lg my-2" type="text" placeholder="Номер телефона" required> 
+            <input name="ph" minlength="5" class="form-control form-control-lg my-2 input-phone" type="text" placeholder="Номер телефона" required> 
 
             <div class="d-grid gap-2">
                 <button type="submit" class="btn btn-warning btn-lg my-2 modal-btn" >Оставить заявку</button>
@@ -50,6 +50,14 @@
                 modalBtn.textContent = `${recipient}`
                 })
         }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery.maskedinput@1.4.1/src/jquery.maskedinput.min.js"></script>
+
+    <script>
+        $(".input-date").click(function(){$(this).setCursorPosition(0);}).mask("99/99/9999");
+        $(".input-phone").click(function(){$(this).setCursorPosition(1);}).mask("+7 (999) 999-99-99");
+        $(".input-card").click(function(){$(this).setCursorPosition(0);}).mask("9999-9999-9999-9999");
     </script>
 {% endif %}
 

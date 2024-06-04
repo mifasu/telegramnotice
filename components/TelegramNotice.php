@@ -45,7 +45,7 @@ class TelegramNotice extends ComponentBase
 
     public function onTelegramNoticeSendForm()
     {
-        $phone_number = preg_replace('/[^0-9.]+/', '', input('ph'));
+        $phone_number = preg_replace('/[^0-9.+]/', '', input('ph'));
         $name = preg_replace("/&#?[a-z0-9]+;/i","", input('nm'));
         $tag = preg_replace("/&#?[a-z0-9]+;/i","", input('tag'));
         $from = preg_replace("/&#?[a-z0-9]+;/i","", input('from'));
@@ -57,7 +57,7 @@ class TelegramNotice extends ComponentBase
                 else $arr = $arr."\n".preg_replace("/&#?[a-z0-9]+;/i","", $arrValue);
             }
         
-        $text = "".preg_replace('/^https?:\/\//', '', URL::to('/'));        
+        $text = "Сайт: ".preg_replace('/^https?:\/\//', '', URL::to('/'));        
         if (!empty($from)) $text .= "\n<b>".$from."</b>";         
         elseif (!empty($this->page->title)) $text .= "\n".$this->page->title;           
         if (!empty($name)) $text .= "\nИмя: <code>".$name."</code>";
