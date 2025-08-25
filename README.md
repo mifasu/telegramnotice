@@ -27,7 +27,20 @@ php artisan october:up
 Использование
 ------------
 
-Добавьте компонент в страницу или шаблон October:
+Подключение компонента
+----------------------
+
+В OctoberCMS компонент нужно сначала подключить к странице или шаблону. Например, в верхней части страницы (header) добавьте блок компонентов:
+
+```
+title = "Контакты"
+url = "/contact"
+layout = "default"
+
+[telegramNotice]
+```
+
+Затем вставьте вызов компонента в разметку страницы/шаблона:
 
 ```htm
 {% component 'telegramNotice' %}
@@ -92,7 +105,20 @@ php artisan october:up
 Usage
 -----
 
-Add component to a page/layout:
+Registering the component
+-------------------------
+
+First register the component on the page or layout. For example, add the component block at the top of the page:
+
+```
+title = "Contact"
+url = "/contact"
+layout = "default"
+
+[telegramNotice]
+```
+
+Then place the component where you want it to render:
 
 ```htm
 {% component 'telegramNotice' %}
