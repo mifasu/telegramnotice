@@ -21,7 +21,7 @@ TelegramNotice Plugin for OctoberCMS
 
 - `bot_token` — токен вашего бота Telegram (формат: 123456:ABC...)
 - `chat_id` — ID чата или @username для отправки
-- `pechkin_secret` — секрет для fallback-прокси (по умолчанию `2207`)
+- `pechkin_secret` — секрет для fallback-прокси
 
 Если `bot_token` и `chat_id` не заданы в настройках, плагин продолжит работать через `dmdev.ru`.
 
@@ -29,10 +29,9 @@ TelegramNotice Plugin for OctoberCMS
 ----------
 Ошибки отправки логируются в канал `daily` (см. `storage/logs/system.log`).
 
-Дальнейшие улучшения
-- Перенести `config/telegram.php` в Backend Settings модели для удобной настройки из админки.
-- Добавить unit/feature тесты отправки.
-
 Лицензия
 -------
 MIT
+
+Автор: Denis Mishin
+Сайт: https://dmdev.ru
