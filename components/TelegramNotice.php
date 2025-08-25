@@ -2,6 +2,8 @@
 
 use Cms\Classes\ComponentBase;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Log;
+use Dmdev\Telegramnotice\Models\Settings;
 
 
 /**
@@ -73,25 +75,95 @@ class TelegramNotice extends ComponentBase
 
     function sendTelegram($text)
     {
+    // Read settings from backend settings model
+    $settings = Settings::instance();
+    $botToken = !empty($settings->bot_token) ? trim($settings->bot_token) : null;
+    $chatId = !empty($settings->chat_id) ? trim($settings->chat_id) : null;
 
+        // If botToken and chatId are set, send directly via Telegram Bot API
+        if ($botToken && $chatId) {
+            $url = 'https://api.telegram.org/bot'.rawurlencode($botToken).'/sendMessage';
+            $post = [
+                'chat_id' => $chatId,
+                'text' => $text,
+                'parse_mode' => 'HTML'
+            ];
+
+            $ch = curl_init();
+            curl_setopt_array($ch, [
+                CURLOPT_URL => $url,
+                CURLOPT_POST => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 10,
+                CURLOPT_POSTFIELDS => $post,
+            ]);
+            $result = curl_exec($ch);
+            $errno = curl_errno($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($errno !== 0) {
+                Log::channel('daily')->error('TelegramNotice: cURL error while sending to Telegram API', [
+                    'errno' => $errno,
+                    'text' => $text,
+                    'url' => $url,
+                    'post' => $post,
+                ]);
+                // Failed to call Telegram API; fallback to existing service
+            } else {
+                // Inspect Telegram API response
+                $decoded = json_decode($result, true);
+                if (!is_array($decoded) || empty($decoded['ok'])) {
+                    Log::channel('daily')->error('TelegramNotice: Telegram API returned error or unexpected response', [
+                        'http_code' => $httpCode,
+                        'response' => $result,
+                        'text' => $text,
+                        'url' => $url,
+                        'post' => $post,
+                    ]);
+                    // fallback to dmdev.ru
+                } else {
+                    return true;
+                }
+            }
+        }
+
+        // Fallback: previous behavior via dmdev.ru proxy
         $sitename = preg_replace('/^https?:\/\//', '', URL::to('/'));
-        $token = md5($sitename.'2207');
+    // use pechkin secret from settings (fallback to '2207')
+    $pechkinSecret = !empty($settings->pechkin_secret) ? $settings->pechkin_secret : '2207';
+    $token = md5($sitename.$pechkinSecret);
 
+        $fallbackUrl = 'https://dmdev.ru/api/botPechkin/'.$sitename.':'.$token.'/sendMessage';
         $ch = curl_init();
-            curl_setopt_array(
-                $ch,
-                array(
-                    CURLOPT_URL => 'https://dmdev.ru/api/botPechkin/'.$sitename.':'.$token.'/sendMessage',
-                    CURLOPT_POST => TRUE,
-                    CURLOPT_RETURNTRANSFER => TRUE,
-                    CURLOPT_TIMEOUT => 10,
-                    CURLOPT_POSTFIELDS => array(
-                        'text' =>  $text,
-                        'parse_mode' => 'html'
-                    ),
-                )
-            );
-        curl_exec($ch);
+        curl_setopt_array(
+            $ch,
+            array(
+                CURLOPT_URL => $fallbackUrl,
+                CURLOPT_POST => TRUE,
+                CURLOPT_RETURNTRANSFER => TRUE,
+                CURLOPT_TIMEOUT => 10,
+                CURLOPT_POSTFIELDS => array(
+                    'text' =>  $text,
+                    'parse_mode' => 'html'
+                ),
+            )
+        );
+        $result = curl_exec($ch);
+        $errno = curl_errno($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($errno !== 0) {
+            Log::channel('daily')->error('TelegramNotice: cURL error while sending to fallback dmdev API', [
+                'errno' => $errno,
+                'http_code' => $httpCode,
+                'response' => $result,
+                'fallback_url' => $fallbackUrl,
+                'text' => $text,
+            ]);
+        }
+
         return true;        
     }
 }

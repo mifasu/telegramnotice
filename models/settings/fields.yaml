@@ -1,0 +1,16 @@
+fields:
+  bot_token:
+    label: Bot token
+    type: text
+    span: auto
+    comment: 'Token of your Telegram bot, like 123456:ABC-DEF'
+  chat_id:
+    label: Chat ID
+    type: text
+    span: auto
+    comment: 'Target chat id (e.g. -1001234567890) or @channelusername'
+  pechkin_secret:
+    label: Pechkin secret
+    type: text
+    span: auto
+    comment: 'Secret used for dmdev.pechkin fallback'
