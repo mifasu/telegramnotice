@@ -1,0 +1,68 @@
+
+{% set random = random(10)%}
+
+{% if not __SELF__.properties.btnName %} {%set btnName = 'Оставить заявку' %} {% else %} {%set btnName = __SELF__.properties.btnName  %} {% endif %}
+
+{% if result == 1 %}
+    <div class="alert alert-success wow fadeIn" data-wow-delay="0.1s" role="alert"><h3>Спасибо, Ваша заявка принята.</h3><p>Скоро с Вами свяжется менеджер!</p></div>
+{% endif %}
+
+<form 
+    data-request="onTelegramNoticeSendForm" 
+    data-request-update="{ 'TelegramNotice::default': '#order-form-div' }" 
+    {#data-request-redirect="/spasibo" #}
+    id="form-1"     
+    >                        
+        <div class="row fs-9">
+
+            <div class="col-12 col-xl-6">
+                <div class="mb-3">
+                    <label for="formname" class="form-label">Ваше Имя</label>
+                    <input name="name" minlength="5" class="form-control" type="text" placeholder="Ваше Имя" id="formname">
+                </div>
+            </div>
+            <div class="col-12 col-xl-6">
+                <div class="mb-3">
+                    <label for="formph" class="form-label">Ваше Имя</label>
+                    <input name="ph" minlength="5" class="form-control" type="text" placeholder="Телефон" id="formph" required>
+                </div>
+            </div>
+
+            {#<div class="col-12">            
+                <div class="mb-3">
+                    <label for="exampleFormControlTextarea1" class="form-label">Ваш вопрос или комментарий</label>
+                    <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+                </div>
+            </div>#}
+
+ 
+            {#<div class="col-12 col-xl-6"> 
+                <input name="arr[]" class="form-control my-2 bg-primary text-white border-white" type="text" placeholder="ИНН или название организации">
+            </div>#}
+
+        </div>
+   
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-lg btn-light">{{ btnName }}</button>
+        </div>
+
+        <p class="my-2 mb-0 text-center fs-10">Я даю согласие на обработку и хранение моих персональных данных в соответствии с <a class="text-white text-decoration-underline" href="/privacy">Политикой конфиденциальности</a></p>
+
+
+    {#<div class="text-start">
+        <div class="form-check py-1 py-xl-0">
+            <input class="form-check-input" type="radio" name="tag" id="radio1{{random}}" checked value="По умолчанию перезвонить">
+            <label class="form-check-label text-white" for="radio1{{random}}" >Пусть мне перезвонят по телефону</label>
+        </div>
+        <div class="form-check py-1 py-xl-0">
+            <input class="form-check-input" type="radio" name="tag" id="radio2{{random}}" value="Просит написать в whtasapp">
+            <label class="form-check-label text-white" for="radio2{{random}}" >Пусть напишут в WhatsApp</label>
+        </div>
+        <div class="form-check py-1 py-xl-0">
+            <input class="form-check-input" type="radio" name="tag" id="radio3{{random}}" value="Просит написать в telegram">
+            <label class="form-check-label text-white" for="radio3{{random}}">Пусть напишут в Telegram</label>
+        </div>
+    </div>#}
+</form>
+
+
