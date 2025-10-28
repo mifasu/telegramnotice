@@ -5,8 +5,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
     <div class="modal-body border-0">
-        <h3>Спасибо, Ваша заявка принята.</h3>
-        <p>Скоро с Вами свяжется менеджер!</p>
+        <h3>Спасибо, скоро наш менеджер свяжется с Вами!</p>
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>        
@@ -19,13 +18,16 @@
     <div class="modal-body">
         <form data-request="onTelegramNoticeSendForm" id="form-1" data-request-update="{ 'TelegramNotice::order-modal-form': '#order-modal-form-div' }">
             <input name="tag" type="hidden">
-            <input name="from" type="hidden" value="{{ this.page.title }}">
             <input name="nm" class="form-control form-control-lg  my-2" type="text" placeholder="Введите Ваше Имя">
-            <input name="ph" minlength="5" class="form-control form-control-lg my-2 input-phone" type="text" placeholder="Номер телефона" required> 
+            <input name="ph" minlength="5" class="form-control form-control-lg my-2" type="text" placeholder="Номер телефона" required> 
+            <input name="arr[]" type="hidden" value="" id="hidden-input-btn">
+            <input name="arr[]" class="form-control form-control-lg  my-2" type="text" placeholder="Название Вашей компании или ИНН">
 
             <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-warning btn-lg my-2 modal-btn" >Оставить заявку</button>
+                <button type="submit" class="btn btn-primary btn-lg btn-pill modal-btn" >Задать вопрос</button>
             </div>
+
+            <p class="fs-9 text-center">Оставляя заявку, вы соглашаетесь на обработку <a href="/privacy" target="_blank">Ваших персональных данных</a></p>
         </form>
     </div>
 
@@ -42,22 +44,16 @@
 
                 // Update the modal's content.
                 const modalTitle = orderModal.querySelector('.modal-title')
-                const modalBodyInput = orderModal.querySelector('.modal-body input')
+
+                // hidden arr[] input (we want to set this) — select by id to avoid ambiguity when multiple arr[] exist
+                const modalHiddenArr = orderModal.querySelector('#hidden-input-btn') || document.getElementById('hidden-input-btn')
                 const modalBtn = orderModal.querySelector('.modal-btn')
 
                 modalTitle.textContent = `${recipient}`
-                modalBodyInput.value = recipient
+                if (modalHiddenArr) modalHiddenArr.value = recipient
                 modalBtn.textContent = `${recipient}`
                 })
         }
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/jquery.maskedinput@1.4.1/src/jquery.maskedinput.min.js"></script>
-
-    <script>
-        $(".input-date").click(function(){$(this).setCursorPosition(0);}).mask("99/99/9999");
-        $(".input-phone").click(function(){$(this).setCursorPosition(1);}).mask("+7 (999) 999-99-99");
-        $(".input-card").click(function(){$(this).setCursorPosition(0);}).mask("9999-9999-9999-9999");
     </script>
 {% endif %}
 
