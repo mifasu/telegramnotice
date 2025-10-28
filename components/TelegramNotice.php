@@ -47,17 +47,25 @@ class TelegramNotice extends ComponentBase
 
     public function onTelegramNoticeSendForm()
     {
-        $phone_number = preg_replace('/[^0-9.+]/', '', input('ph'));
-        $name = preg_replace("/&#?[a-z0-9]+;/i","", input('nm'));
-        $tag = preg_replace("/&#?[a-z0-9]+;/i","", input('tag'));
-        $from = preg_replace("/&#?[a-z0-9]+;/i","", input('from'));
+        // Accept multiple possible input names to be tolerant with theme templates
+        $rawPhone = input('ph') ?? input('contact') ?? input('phone') ?? input('phone_number');
+        $phone_number = preg_replace('/[^0-9.+]/', '', $rawPhone ?? '');
 
-        if (is_array(input('arr')))
-            foreach (input('arr') as $key => $arrValue)
+        $rawName = input('nm') ?? input('name') ?? input('fullname');
+        $name = preg_replace("/&#?[a-z0-9]+;/i","", $rawName ?? '');
+
+        $tag = preg_replace("/&#?[a-z0-9]+;/i","", input('tag') ?? '');
+        $from = preg_replace("/&#?[a-z0-9]+;/i","", input('from') ?? '');
+
+        $arr = null;
+        $inputArr = input('arr');
+        if (is_array($inputArr)) {
+            foreach ($inputArr as $key => $arrValue)
             {
-                if ($key === array_key_first(input('arr'))) $arr = preg_replace("/&#?[a-z0-9]+;/i","", $arrValue);
+                if ($key === array_key_first($inputArr)) $arr = preg_replace("/&#?[a-z0-9]+;/i","", $arrValue);
                 else $arr = $arr."\n".preg_replace("/&#?[a-z0-9]+;/i","", $arrValue);
             }
+        }
         
         $text = "Сайт: ".preg_replace('/^https?:\/\//', '', URL::to('/'));        
         if (!empty($from)) $text .= "\n<b>".$from."</b>";         
