@@ -5,7 +5,7 @@ TelegramNotice — OctoberCMS plugin / Плагин TelegramNotice для Octobe
 ------------
 
 Кратко
-: Компонент `TelegramNotice` отправляет данные форм (заявки) в Telegram. По умолчанию используется внешний прокси `https://dmdev.ru/api/botPechkin/` для совместимости. Начиная с v1.1.1 все настройки доступны в Backend Settings (Backend → Settings → Telegram Notice).
+: Компонент `TelegramNotice` в первую очередь отправляет данные форм напрямую в Telegram через Bot API (если заданы `bot_token` и `chat_id`). При отсутствии этих настроек или при ошибках отправки доступен fallback — отправка через собственный провайдер (dmdev.ru / Pechkin). Начиная с v1.1.2 все настройки доступны в Backend Settings (Backend → Settings → Telegram Notice).
 
 Changelog (v1.1.2)
 ------------------
@@ -57,13 +57,15 @@ layout = "default"
 Конфигурация
 ------------
 
-В Backend → Settings → Telegram Notice настройте:
+В Backend → Settings → Telegram Notice настройте в первую очередь:
 
-- `bot_token` — токен вашего бота (`123456:ABC-DEF...`)
-- `chat_id` — целевой чат (`-1001234567890` или `@channelname`)
-- `pechkin_secret` — секрет для fallback (по умолчанию `2207`)
+- `bot_token` — токен вашего бота (`123456:ABC-DEF...`). Если указан вместе с `chat_id`, плагин будет отправлять сообщения напрямую через Telegram Bot API.
+- `chat_id` — целевой чат (`-1001234567890` или `@channelname`).
+- `pechkin_secret` — секрет для fallback (если не указан, плагин сгенерирует случайный секрет и сохранит его в настройках).
 
-Если `bot_token` и `chat_id` пусты, плагин использует fallback через `dmdev.ru`.
+Поведение:
+- Если заданы `bot_token` и `chat_id` — отправка идёт напрямую в Telegram Bot API.
+- Если прямой способ недоступен или данные не заданы — используется fallback через `https://dmdev.ru/api/botPechkin/{sitename}:{token}/sendMessage`, где `{token}` соответствует `pechkin_secret` из настроек (если он задан) или автоматически сгенерированному и сохранённому значению.
 
 Логирование
 -----------
@@ -91,7 +93,7 @@ English (EN)
 --------------
 
 Quick summary
-: The `TelegramNotice` component sends frontend form submissions to Telegram. By default it uses the `https://dmdev.ru/api/botPechkin/` proxy for compatibility. Since v1.1.1 configuration moved to Backend Settings (Backend → Settings → Telegram Notice).
+: The `TelegramNotice` component primarily sends frontend form submissions directly to Telegram via the Bot API when `bot_token` and `chat_id` are configured. If those are missing or the direct send fails, it can fallback to a custom provider (dmdev.ru / Pechkin). Since v1.1.2 configuration moved to Backend Settings (Backend → Settings → Telegram Notice).
 
 Quick install
 -------------
@@ -135,13 +137,15 @@ Then place the component where you want it to render:
 Configuration
 -------------
 
-Set the following in Backend → Settings → Telegram Notice:
+Set the following in Backend → Settings → Telegram Notice (priority order):
 
-- `bot_token` — your bot token (e.g. `123456:ABC-DEF...`)
-- `chat_id` — target chat id (e.g. `-1001234567890`) or `@channelname`
-- `pechkin_secret` — secret for fallback (default `2207`)
+- `bot_token` — your bot token (e.g. `123456:ABC-DEF...`). When provided together with `chat_id`, the plugin will send messages directly through the Telegram Bot API.
+- `chat_id` — target chat id (e.g. `-1001234567890`) or `@channelname`.
+- `pechkin_secret` — secret for fallback. If omitted the plugin will generate a random secret, save it in settings, and use it as the token for the fallback provider.
 
-If `bot_token` and `chat_id` are empty the plugin will fallback to the dmdev.ru proxy.
+Behavior:
+- Direct Bot API send is attempted first when `bot_token` and `chat_id` are set.
+- If direct send is not possible or credentials are missing, the plugin will use the dmdev.ru Pechkin API as a fallback.
 
 Logging
 -------
