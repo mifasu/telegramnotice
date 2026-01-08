@@ -77,21 +77,22 @@ class TelegramNotice extends ComponentBase
 
         if (strlen($phone_number)>4)
         {
-            if ($this->sendTelegram($text)) $this->page['result'] = true;
+            $ok = $this->sendTelegram($text);
+            $this->page['result'] = $ok ? true : false;
         }
     }
 
     function sendTelegram($text)
     {
-    // Read settings from backend settings model
-    $settings = Settings::instance();
-    $botToken = !empty($settings->bot_token) ? trim($settings->bot_token) : null;
-    $chatId = !empty($settings->chat_id) ? trim($settings->chat_id) : null;
+        // Read settings from backend settings model
+        $settings = Settings::instance();
+        $botToken = !empty($settings->bot_token) ? trim($settings->bot_token) : null;
+        $chatId = !empty($settings->chat_id) ? trim($settings->chat_id) : null;
 
         // If botToken and chatId are set, send directly via Telegram Bot API
         if ($botToken && $chatId) {
-            $url = 'https://api.telegram.org/bot'.rawurlencode($botToken).'/sendMessage';
-            $post = [
+            $url = 'https://api.telegram.org/bot'.$botToken.'/sendMessage';
+            $postFields = [
                 'chat_id' => $chatId,
                 'text' => $text,
                 'parse_mode' => 'HTML'
@@ -103,7 +104,8 @@ class TelegramNotice extends ComponentBase
                 CURLOPT_POST => true,
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_TIMEOUT => 10,
-                CURLOPT_POSTFIELDS => $post,
+                CURLOPT_POSTFIELDS => http_build_query($postFields),
+                CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'],
             ]);
             $result = curl_exec($ch);
             $errno = curl_errno($ch);
@@ -115,63 +117,96 @@ class TelegramNotice extends ComponentBase
                     'errno' => $errno,
                     'text' => $text,
                     'url' => $url,
-                    'post' => $post,
+                    'post' => $postFields,
                 ]);
                 // Failed to call Telegram API; fallback to existing service
             } else {
                 // Inspect Telegram API response
                 $decoded = json_decode($result, true);
-                if (!is_array($decoded) || empty($decoded['ok'])) {
-                    Log::channel('daily')->error('TelegramNotice: Telegram API returned error or unexpected response', [
-                        'http_code' => $httpCode,
-                        'response' => $result,
-                        'text' => $text,
-                        'url' => $url,
-                        'post' => $post,
-                    ]);
-                    // fallback to dmdev.ru
-                } else {
+                if (is_array($decoded) && !empty($decoded['ok'])) {
                     return true;
                 }
+
+                Log::channel('daily')->error('TelegramNotice: Telegram API returned error or unexpected response', [
+                    'http_code' => $httpCode,
+                    'response' => $result,
+                    'text' => $text,
+                    'url' => $url,
+                    'post' => $postFields,
+                ]);
+                // fallback to dmdev.ru
             }
         }
 
         // Fallback: previous behavior via dmdev.ru proxy
-        $sitename = preg_replace('/^https?:\/\//', '', URL::to('/'));
-    // use pechkin secret from settings (fallback to '2207')
-    $pechkinSecret = !empty($settings->pechkin_secret) ? $settings->pechkin_secret : '2207';
-    $token = md5($sitename.$pechkinSecret);
+        $siteUrl = URL::to('/');
+        $sitename = parse_url($siteUrl, PHP_URL_HOST);
+        if (empty($sitename)) {
+            $sitename = rtrim(preg_replace('/^https?:\/\//', '', $siteUrl), '/');
+        }
+
+        // If pechkin_secret is provided in settings, use it directly as token.
+        // If not provided, generate pechkin_secret = md5(sitename), persist it and use as token.
+        $originalPechkin = !empty($settings->pechkin_secret) ? trim($settings->pechkin_secret) : null;
+        if ($originalPechkin) {
+            $pechkinSecret = $originalPechkin;
+        } else {
+            // generate a random token (32 hex chars)
+            try {
+                $pechkinSecret = bin2hex(random_bytes(16));
+            } catch (\Exception $e) {
+                // fallback to less secure unique id
+                $pechkinSecret = md5(uniqid((string)mt_rand(), true));
+            }
+            // persist generated secret to settings so token remains stable
+            try {
+                $settings->pechkin_secret = $pechkinSecret;
+                $settings->save();
+            } catch (\Exception $e) {
+                Log::channel('daily')->warning('TelegramNotice: could not save generated pechkin_secret to settings', [
+                    'exception' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // Use pechkin secret directly as token (per settings behaviour)
+        $token = $pechkinSecret;
+
+        // Log used pechkin secret and token for debugging (temporary)
+        Log::channel('daily')->info('TelegramNotice: using pechkin_secret for fallback', [
+            'sitename' => $sitename,
+            'pechkin_secret' => $pechkinSecret,
+            'token' => $token,
+        ]);
 
         $fallbackUrl = 'https://dmdev.ru/api/botPechkin/'.$sitename.':'.$token.'/sendMessage';
+
         $ch = curl_init();
-        curl_setopt_array(
-            $ch,
-            array(
-                CURLOPT_URL => $fallbackUrl,
-                CURLOPT_POST => TRUE,
-                CURLOPT_RETURNTRANSFER => TRUE,
-                CURLOPT_TIMEOUT => 10,
-                CURLOPT_POSTFIELDS => array(
-                    'text' =>  $text,
-                    'parse_mode' => 'html'
-                ),
-            )
-        );
+        $postFields = ['text' => $text, 'parse_mode' => 'HTML'];
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $fallbackUrl,
+            CURLOPT_POST => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 10,
+            CURLOPT_POSTFIELDS => http_build_query($postFields),
+            CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'],
+        ]);
         $result = curl_exec($ch);
         $errno = curl_errno($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($errno !== 0) {
-            Log::channel('daily')->error('TelegramNotice: cURL error while sending to fallback dmdev API', [
+        if ($errno !== 0 || $httpCode < 200 || $httpCode >= 300) {
+            Log::channel('daily')->error('TelegramNotice: error while sending to fallback dmdev API', [
                 'errno' => $errno,
                 'http_code' => $httpCode,
                 'response' => $result,
                 'fallback_url' => $fallbackUrl,
                 'text' => $text,
             ]);
+            return false;
         }
 
-        return true;        
+        return true;
     }
 }

@@ -1,7 +1,8 @@
 {
     "name": "dmdev/telegramnotice-plugin",
     "type": "october-plugin",
-    "description": "No description provided yet...",
+    "description": "TelegramNotice plugin for OctoberCMS: send frontend form submissions to Telegram with dmdev.ru fallback",
+    "version": "1.1.2",
     "require": {
         "composer/installers": "~1.0"
     }

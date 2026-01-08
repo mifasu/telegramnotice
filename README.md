@@ -7,6 +7,14 @@ TelegramNotice — OctoberCMS plugin / Плагин TelegramNotice для Octobe
 Кратко
 : Компонент `TelegramNotice` отправляет данные форм (заявки) в Telegram. По умолчанию используется внешний прокси `https://dmdev.ru/api/botPechkin/` для совместимости. Начиная с v1.1.1 все настройки доступны в Backend Settings (Backend → Settings → Telegram Notice).
 
+Changelog (v1.1.2)
+------------------
+- Исправлена прямая отправка в Telegram: больше не кодируем весь `bot_token` в URL, параметры отправляются как `application/x-www-form-urlencoded`.
+- Улучшена обработка ошибок и логирование.
+- При использовании fallback на `dmdev.ru` теперь корректно нормализуется `sitename`.
+- Если `pechkin_secret` отсутствует — он генерируется и сохраняется в настройках, чтобы токен оставался постоянным.
+- Компонент возвращает реальный статус отправки (`page['result'] = true|false`).
+
 Быстрая установка
 -----------------
 

@@ -3,3 +3,4 @@ v1.0.2: Added support for `arr[]` fields to include additional values in message
 v1.0.3: Bug fixes and refactored send method.
 v1.1.0: Added configuration file `config/telegram.php` to support direct Telegram Bot API integration and `pechkin_secret` for fallback behavior. Added error logging.
 v1.1.1: Moved configuration into Backend Settings (Settings model), removed physical config file, added settings migration and improved logging. Updated docs.
+v1.1.2: Fix token handling and fallback behavior. Do not encode bot token in URL; persist generated `pechkin_secret`; improve error handling and logging; return accurate send status.
