@@ -172,24 +172,32 @@ class TelegramNotice extends ComponentBase
         // Use pechkin secret directly as token (per settings behaviour)
         $token = $pechkinSecret;
 
-        // Log used pechkin secret and token for debugging (temporary)
+        $apiBase = rtrim(env('DMDEV_API_BASE_URL', 'https://dmdev.ru'), '/');
+        $fallbackUrl = $apiBase.'/api/v1/pechkin/sendMessage';
+
         Log::channel('daily')->info('TelegramNotice: using pechkin_secret for fallback', [
             'sitename' => $sitename,
             'pechkin_secret' => $pechkinSecret,
             'token' => $token,
+            'fallback_url' => $fallbackUrl,
+            'api_base' => $apiBase,
         ]);
 
-        $fallbackUrl = 'https://dmdev.ru/api/botPechkin/'.$sitename.':'.$token.'/sendMessage';
+        $postFields = ['text' => $text, 'parse_mode' => 'HTML'];
+        $headers = [
+            'Content-Type: application/x-www-form-urlencoded',
+            'Authorization: Bearer '.$token,
+            'X-Site-Name: '.$sitename,
+        ];
 
         $ch = curl_init();
-        $postFields = ['text' => $text, 'parse_mode' => 'HTML'];
         curl_setopt_array($ch, [
             CURLOPT_URL => $fallbackUrl,
             CURLOPT_POST => true,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => 10,
             CURLOPT_POSTFIELDS => http_build_query($postFields),
-            CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'],
+            CURLOPT_HTTPHEADER => $headers,
         ]);
         $result = curl_exec($ch);
         $errno = curl_errno($ch);
@@ -202,6 +210,19 @@ class TelegramNotice extends ComponentBase
                 'http_code' => $httpCode,
                 'response' => $result,
                 'fallback_url' => $fallbackUrl,
+                'api_base' => $apiBase,
+                'text' => $text,
+            ]);
+            return false;
+        }
+
+        $decoded = json_decode($result, true);
+        if (!is_array($decoded) || empty($decoded['ok'])) {
+            Log::channel('daily')->error('TelegramNotice: DMDEV API returned unexpected response', [
+                'response' => $result,
+                'http_code' => $httpCode,
+                'fallback_url' => $fallbackUrl,
+                'api_base' => $apiBase,
                 'text' => $text,
             ]);
             return false;

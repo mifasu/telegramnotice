@@ -63,9 +63,9 @@ layout = "default"
 - `chat_id` — целевой чат (`-1001234567890` или `@channelname`).
 - `pechkin_secret` — секрет для fallback (если не указан, плагин сгенерирует случайный секрет и сохранит его в настройках).
 
-Поведение:
-- Если заданы `bot_token` и `chat_id` — отправка идёт напрямую в Telegram Bot API.
-- Если прямой способ недоступен или данные не заданы — используется fallback через `https://dmdev.ru/api/botPechkin/{sitename}:{token}/sendMessage`, где `{token}` соответствует `pechkin_secret` из настроек (если он задан) или автоматически сгенерированному и сохранённому значению.
+	Поведение:
+	- Если заданы `bot_token` и `chat_id` — отправка идёт напрямую в Telegram Bot API.
+	- Если прямой способ недоступен или данные не заданы — используется fallback через канонический API: `POST /api/v1/pechkin/sendMessage` с заголовками `Authorization: Bearer <token>` и `X-Site-Name: <sitename>`. Базовый URL для fallback можно переопределить переменной окружения `DMDEV_API_BASE_URL` (по умолчанию `https://dmdev.ru`). Токен соответствует `pechkin_secret` из настроек (если задан) или автоматически сгенерированному и сохранённому значению.
 
 Логирование
 -----------
@@ -143,9 +143,9 @@ Set the following in Backend → Settings → Telegram Notice (priority order):
 - `chat_id` — target chat id (e.g. `-1001234567890`) or `@channelname`.
 - `pechkin_secret` — secret for fallback. If omitted the plugin will generate a random secret, save it in settings, and use it as the token for the fallback provider.
 
-Behavior:
-- Direct Bot API send is attempted first when `bot_token` and `chat_id` are set.
-- If direct send is not possible or credentials are missing, the plugin will use the dmdev.ru Pechkin API as a fallback.
+	Behavior:
+	- Direct Bot API send is attempted first when `bot_token` and `chat_id` are set.
+	- If direct send is not possible or credentials are missing, the plugin will call the canonical gateway `POST /api/v1/pechkin/sendMessage` with headers `Authorization: Bearer <token>` and `X-Site-Name: <sitename>`. The fallback base URL can be overridden via the `DMDEV_API_BASE_URL` environment variable (default `https://dmdev.ru`). The token used is the `pechkin_secret` from settings (or a generated/saved value).
 
 Logging
 -------
