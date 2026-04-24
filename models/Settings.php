@@ -14,8 +14,10 @@ class Settings extends Model
 
     // Default values for settings fields
     protected $defaultValues = [
-        'bot_token' => '',
-        'chat_id' => '',
+        'bot_token'      => '',
+        'chat_id'        => '',
+        'max_bot_token'  => '',
+        'max_chat_id'    => '',
         'pechkin_secret' => '',
     ];
 }

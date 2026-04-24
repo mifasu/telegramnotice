@@ -1,6 +1,6 @@
 ﻿# TelegramNotice — OctoberCMS Plugin
 
-Send frontend form submissions to Telegram. Supports direct Telegram Bot API and an automatic fallback to the **dmdev.ru / Pechkin** proxy when bot credentials are not configured.
+Send frontend form submissions to **Telegram**, **MAX messenger**, or both simultaneously. Falls back automatically to the **dmdev.ru / Pechkin** proxy when neither is configured.
 
 - Plugin code: `Dmdev.Telegramnotice`
 - Requires: OctoberCMS 4.x, PHP 8.0+
@@ -12,11 +12,14 @@ Send frontend form submissions to Telegram. Supports direct Telegram Bot API and
 ## Features
 
 - Component `TelegramNotice` renders a ready-to-use contact form on any page or layout.
-- Sends messages directly via **Telegram Bot API** when `bot_token` + `chat_id` are configured.
-- Falls back to the **dmdev.ru Pechkin proxy** automatically when bot credentials are absent or the direct send fails — the plugin still works out of the box without any Telegram bot.
+- **Telegram**: sends directly via Telegram Bot API when `bot_token` + `chat_id` are configured.
+- **MAX**: sends via MAX platform API (`platform-api.max.ru`) when `max_bot_token` + `max_chat_id` are configured.
+- **Simultaneous delivery**: if both Telegram and MAX are configured the message goes to **both channels at once**.
+- **Pechkin fallback**: if neither Telegram nor MAX is configured, the plugin uses the dmdev.ru/Pechkin proxy — works out of the box with zero configuration.
+- MAX does not support HTML — text is automatically converted to plain-text (`<code>val</code>` → `«val»`, other tags stripped).
 - `pechkin_secret` is generated and persisted automatically if not provided.
 - Fallback uses canonical `POST /api/v1/pechkin/sendMessage` with `Authorization: Bearer` + `X-Site-Name` headers; base URL overrideable via `DMDEV_API_BASE_URL` env variable.
-- All settings managed in **Backend → Settings → Telegram Notice**.
+- All settings managed in **Backend → Settings → Telegram Notice** (grouped by channel).
 - Two ready layouts included: a standalone form and a Bootstrap 5 modal form.
 - Errors are logged via the standard Laravel/October `Log` facade.
 
@@ -42,20 +45,40 @@ php artisan october:up
 
 ## Configuration
 
-Open **Backend → Settings → Telegram Notice** and fill in:
+Open **Backend → Settings → Telegram Notice** and fill in the channels you want to use.
+
+### Telegram Bot API
 
 | Field | Description |
 |---|---|
 | `bot_token` | Telegram bot token, e.g. `123456:ABC-DEF…` |
-| `chat_id` | Target chat/channel id, e.g. `-1001234567890` or `@channelname` |
+| `chat_id` | Target Telegram chat/channel id, e.g. `-1001234567890` or `@channelname` |
+
+### MAX Messenger Bot API
+
+| Field | Description |
+|---|---|
+| `max_bot_token` | MAX bot access token (find it in [business.max.ru](https://business.max.ru/self) → Chat bots → Integration) |
+| `max_chat_id` | Target MAX chat or channel ID (integer, e.g. `12345678`) |
+
+> **Note:** MAX does not support HTML in message text. The plugin automatically converts HTML to plain-text before sending: `<code>value</code>` → `«value»`, other tags are stripped, HTML entities are decoded.
+
+### Fallback (dmdev.ru / Pechkin)
+
+| Field | Description |
+|---|---|
 | `pechkin_secret` | Secret for the dmdev.ru fallback (auto-generated if left empty) |
 
-**Behaviour priority:**
-1. If `bot_token` **and** `chat_id` are set → message is sent directly via Telegram Bot API.
-2. If either is missing, or the direct send fails → fallback: `POST /api/v1/pechkin/sendMessage` with `Authorization: Bearer <token>` and `X-Site-Name: <sitename>` headers against `DMDEV_API_BASE_URL` (default `https://dmdev.ru`).
-3. If `pechkin_secret` is empty, the plugin generates a random 32-character token, saves it, and reuses it.
+**Routing logic:**
 
-> The plugin **always works** even without any configuration — it will use the Pechkin fallback automatically.
+| Configured | Result |
+|---|---|
+| Telegram only | Sent to Telegram |
+| MAX only | Sent to MAX |
+| Telegram + MAX | Sent to **both** (success if at least one succeeds) |
+| Neither | Sent via Pechkin fallback |
+
+> The plugin **always works** even without any configuration — Pechkin fallback is used automatically. `DMDEV_API_BASE_URL` env variable overrides the fallback base URL (default `https://dmdev.ru`).
 
 ---
 
@@ -127,6 +150,7 @@ If you previously used `plugins/dmdev/telegramnotice/config/telegram.php`, the p
 
 | Version | Notes |
 |---|---|
+| 1.2.0 | Add MAX messenger support. New settings: `max_bot_token`, `max_chat_id`. Routing: Telegram if set, MAX if set, both simultaneously if both set, Pechkin fallback when neither is configured. MAX text is auto-converted from HTML to plain-text. |
 | 1.1.3 | OctoberCMS 4.x compatibility. Fallback uses new canonical API v1 endpoint with Bearer auth. Clean imports, fix Settings model, remove sensitive debug log, standardise Log facade, fix HTML typo. Add LICENSE, marketplace-ready composer.json. |
 | 1.1.2 | Fix direct Telegram API call (no URL-encoded token), persist `pechkin_secret`, return real send status, improve error handling. |
 | 1.1.1 | Move all config to Backend Settings, remove physical config file, add settings migration. |
@@ -145,6 +169,14 @@ MIT © [Denis Mishin](https://dmdev.ru)
 
 ## Русский
 
-Компонент `TelegramNotice` отправляет данные форм с сайта в Telegram. Если `bot_token` и `chat_id` заданы — отправка идёт напрямую через Telegram Bot API. Иначе используется fallback через `dmdev.ru / Pechkin` — плагин **работает даже без настройки бота**.
+Компонент `TelegramNotice` отправляет данные форм в **Telegram**, **MAX мессенджер** или оба канала одновременно. Если ни один канал не настроен — автоматически используется fallback через `dmdev.ru / Pechkin`.
+
+**Логика маршрутизации:**
+- Заполнены `bot_token` + `chat_id` → отправка в Telegram
+- Заполнены `max_bot_token` + `max_chat_id` → отправка в MAX
+- Заполнены оба → отправка и в Telegram, и в MAX одновременно
+- Не заполнено ничего → отправка через Pechkin (плагин работает из коробки)
+
+**Важно:** MAX не поддерживает HTML-форматирование. Плагин автоматически конвертирует текст перед отправкой: `<code>значение</code>` → `«значение»`, остальные теги удаляются.
 
 Настройка: **Панель управления → Настройки → Telegram Notice**.

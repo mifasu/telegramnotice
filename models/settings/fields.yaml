@@ -1,16 +1,46 @@
 fields:
+
+  _telegram_section:
+    label: Telegram Bot API
+    type: section
+    comment: 'If bot_token and chat_id are set, messages are sent directly via Telegram Bot API.'
+
   bot_token:
     label: Bot token
     type: text
     span: auto
-    comment: 'Token of your Telegram bot, like 123456:ABC-DEF'
+    comment: 'Token of your Telegram bot, e.g. 123456:ABC-DEF'
+
   chat_id:
     label: Chat ID
     type: text
     span: auto
-    comment: 'Target chat id (e.g. -1001234567890) or @channelusername'
+    comment: 'Target Telegram chat id (e.g. -1001234567890) or @channelusername'
+
+  _max_section:
+    label: MAX Messenger Bot API
+    type: section
+    comment: 'If max_bot_token and max_chat_id are set, messages are also sent via MAX platform API (platform-api.max.ru).'
+
+  max_bot_token:
+    label: MAX Bot token
+    type: text
+    span: auto
+    comment: 'Access token of your MAX bot (find it in business.max.ru → Chat bots → Integration)'
+
+  max_chat_id:
+    label: MAX Chat ID
+    type: text
+    span: auto
+    comment: 'Target chat or channel ID in MAX (integer, e.g. 12345678)'
+
+  _fallback_section:
+    label: Fallback (dmdev.ru / Pechkin)
+    type: section
+    comment: 'Used only when neither Telegram nor MAX credentials are configured.'
+
   pechkin_secret:
     label: Pechkin secret
     type: text
     span: auto
-    comment: 'Secret used for dmdev.pechkin fallback'
+    comment: 'Secret used for dmdev.pechkin fallback (auto-generated if left empty)'
