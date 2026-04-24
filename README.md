@@ -2,7 +2,7 @@
 
 Send frontend form submissions to **Telegram**, **MAX messenger**, or both simultaneously. Falls back automatically to the **dmdev.ru / Pechkin** proxy when neither is configured.
 
-- Plugin code: `Dmdev.Telegramnotice`
+- Plugin code: `DMdev.Telegramnotice`
 - Requires: OctoberCMS 4.x, PHP 8.0+
 - Author: [Denis Mishin](https://dmdev.ru)
 - License: MIT

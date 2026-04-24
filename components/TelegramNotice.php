@@ -1,9 +1,9 @@
-<?php namespace Dmdev\Telegramnotice\Components;
+<?php namespace DMdev\Telegramnotice\Components;
 
 use Cms\Classes\ComponentBase;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Log;
-use Dmdev\Telegramnotice\Models\Settings;
+use DMdev\Telegramnotice\Models\Settings;
 
 
 /**

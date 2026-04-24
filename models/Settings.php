@@ -1,4 +1,4 @@
-<?php namespace Dmdev\Telegramnotice\Models;
+<?php namespace DMdev\Telegramnotice\Models;
 
 use Model;
 

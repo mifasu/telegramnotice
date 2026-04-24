@@ -1,7 +1,7 @@
-<?php namespace Dmdev\Telegramnotice;
+<?php namespace DMdev\Telegramnotice;
 
 use System\Classes\PluginBase;
-use Dmdev\Telegramnotice\Models\Settings;
+use DMdev\Telegramnotice\Models\Settings;
 
 /**
  * Plugin Information File
@@ -29,7 +29,7 @@ class Plugin extends PluginBase
     public function registerComponents()
     {
         return [
-            'Dmdev\Telegramnotice\Components\TelegramNotice' => 'TelegramNotice',
+            'DMdev\Telegramnotice\Components\TelegramNotice' => 'TelegramNotice',
         ];
     }
 
@@ -40,7 +40,7 @@ class Plugin extends PluginBase
                 'label' => 'Telegram Notice',
                 'description' => 'Configure Telegram bot token and chat id',
                 'icon' => 'icon-paper-plane',
-                'class' => 'Dmdev\\Telegramnotice\\Models\\Settings',
+                'class' => 'DMdev\\Telegramnotice\\Models\\Settings',
                 'order' => 500,
                 'keywords' => 'telegram bot chat'
             ]
