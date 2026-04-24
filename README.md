@@ -78,7 +78,9 @@ Open **Backend → Settings → Telegram Notice** and fill in the channels you w
 | Telegram + MAX | Sent to **both** (success if at least one succeeds) |
 | Neither | Sent via Pechkin fallback |
 
-> The plugin **always works** even without any configuration — Pechkin fallback is used automatically. `DMDEV_API_BASE_URL` env variable overrides the fallback base URL (default `https://dmdev.ru`).
+> The plugin **always works** even without any configuration — Pechkin fallback is used automatically.
+>
+> **Important:** To use the Pechkin fallback you must contact the author at [dmdev.ru](https://dmdev.ru) to register your site token and link it to a destination chat or channel. Without registration the fallback will not deliver messages. `DMDEV_API_BASE_URL` env variable overrides the fallback base URL (default `https://dmdev.ru`).
 
 ---
 
@@ -169,14 +171,119 @@ MIT © [Denis Mishin](https://dmdev.ru)
 
 ## Русский
 
-Компонент `TelegramNotice` отправляет данные форм в **Telegram**, **MAX мессенджер** или оба канала одновременно. Если ни один канал не настроен — автоматически используется fallback через `dmdev.ru / Pechkin`.
+### Описание
 
-**Логика маршрутизации:**
-- Заполнены `bot_token` + `chat_id` → отправка в Telegram
-- Заполнены `max_bot_token` + `max_chat_id` → отправка в MAX
-- Заполнены оба → отправка и в Telegram, и в MAX одновременно
-- Не заполнено ничего → отправка через Pechkin (плагин работает из коробки)
+Плагин `TelegramNotice` добавляет на сайт форму обратной связи и отправляет данные в **Telegram**, **MAX мессенджер** или в оба канала одновременно. Если ни один канал не настроен — отправка автоматически идёт через прокси-сервис **dmdev.ru / Pechkin**.
 
-**Важно:** MAX не поддерживает HTML-форматирование. Плагин автоматически конвертирует текст перед отправкой: `<code>значение</code>` → `«значение»`, остальные теги удаляются.
+---
 
-Настройка: **Панель управления → Настройки → Telegram Notice**.
+### Установка
+
+Через консоль OctoberCMS:
+
+```bash
+php artisan plugin:install Dmdev.Telegramnotice --from=https://github.com/mifasu/telegramnotice.git
+```
+
+Вручную:
+
+```bash
+cd plugins/dmdev
+git clone https://github.com/mifasu/telegramnotice.git telegramnotice
+php artisan october:up
+```
+
+---
+
+### Настройка
+
+Откройте **Панель управления → Настройки → Telegram Notice** и заполните нужные поля.
+
+#### Telegram Bot API
+
+| Поле | Описание |
+|---|---|
+| `bot_token` | Токен вашего Telegram-бота, например `123456:ABC-DEF…` |
+| `chat_id` | ID целевого чата или канала, например `-1001234567890` или `@channelname` |
+
+Как получить токен: обратитесь к [@BotFather](https://t.me/BotFather) в Telegram, создайте бота командой `/newbot` и скопируйте токен.
+
+#### MAX Messenger Bot API
+
+| Поле | Описание |
+|---|---|
+| `max_bot_token` | Токен доступа вашего MAX-бота (находится в [business.max.ru](https://business.max.ru/self) → Чат-боты → Интеграция) |
+| `max_chat_id` | ID целевого чата или канала в MAX (целое число, например `12345678`) |
+
+> **Важно:** MAX не поддерживает HTML-форматирование в тексте. Плагин автоматически конвертирует сообщение перед отправкой: `<code>значение</code>` превращается в `«значение»`, остальные HTML-теги удаляются, HTML-сущности декодируются.
+
+#### Резервный канал (dmdev.ru / Pechkin)
+
+| Поле | Описание |
+|---|---|
+| `pechkin_secret` | Секретный ключ для резервной отправки через dmdev.ru (генерируется автоматически, если не задан) |
+
+> **Для работы резервного канала необходимо связаться с автором плагина** через сайт [dmdev.ru](https://dmdev.ru). Автор должен зарегистрировать ваш сайт и привязать токен к нужному чату или каналу в Telegram или MAX. Без этой привязки резервная отправка работать не будет.
+
+---
+
+### Логика маршрутизации
+
+| Что настроено | Результат |
+|---|---|
+| Только Telegram | Отправка в Telegram |
+| Только MAX | Отправка в MAX |
+| Telegram + MAX | Отправка **одновременно** в оба канала |
+| Ничего не настроено | Отправка через резервный Pechkin (требует регистрации у автора) |
+
+---
+
+### Использование на странице
+
+Подключите компонент на страницу или лейаут:
+
+```ini
+title = "Контакты"
+url = "/contacts"
+layout = "default"
+
+[telegramNotice]
+```
+
+Отобразите форму в шаблоне:
+
+```twig
+{% component 'telegramNotice' %}
+```
+
+Модальный вариант:
+
+```twig
+{% component 'telegramNotice' template="TelegramNotice::order-modal-form" %}
+```
+
+---
+
+### Поля формы
+
+Компонент принимает следующие поля:
+
+| Поле | Описание |
+|---|---|
+| `ph`, `phone`, `phone_number`, `contact` | Номер телефона (обязательное, должно содержать более 4 символов) |
+| `name`, `nm`, `fullname` | Имя посетителя |
+| `tag` | Произвольная метка, добавляется в конец сообщения |
+| `from` | Название раздела или страницы (вместо `page.title`) |
+| `arr[]` | Массив дополнительных значений, каждое с новой строки |
+
+---
+
+### Логирование
+
+Все ошибки отправки записываются через стандартный `Log::error()` и `Log::warning()` в системный лог OctoberCMS (обычно `storage/logs/system.log`).
+
+---
+
+### Миграция с файла конфигурации
+
+Если ранее использовался файл `plugins/dmdev/telegramnotice/config/telegram.php` — при первом запуске плагин автоматически перенесёт значения из него в Backend Settings (только если поля ещё пусты).

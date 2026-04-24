@@ -1,8 +1,8 @@
 1.0.1: Initial release. Adds TelegramNotice component and basic form templates.
-1.0.2: Added support for `arr[]` fields to include additional values in messages.
+1.0.2: Added support for arr[] fields to include additional values in messages.
 1.0.3: Bug fixes and refactored send method.
-1.1.0: Added configuration file `config/telegram.php` to support direct Telegram Bot API integration and `pechkin_secret` for fallback behavior. Added error logging.
-1.1.1: Moved configuration into Backend Settings (Settings model), removed physical config file, added settings migration and improved logging. Updated docs.
-1.1.2: Fix token handling and fallback behavior. Do not encode bot token in URL; persist generated `pechkin_secret`; improve error handling and logging; return accurate send status.
-1.1.3: OctoberCMS 4.x compatibility. Fallback now uses canonical API v1 endpoint (POST /api/v1/pechkin/sendMessage with Authorization Bearer + X-Site-Name headers); supports DMDEV_API_BASE_URL env override. Clean imports, fix Settings model visibility, remove sensitive debug log, standardise Log facade, fix HTML template typo. Add LICENSE and marketplace-ready composer.json.
-1.2.0: Add MAX messenger support (platform-api.max.ru). New settings: max_bot_token and max_chat_id. Routing logic: Telegram if configured, MAX if configured, both simultaneously if both configured, Pechkin fallback only when neither is set. Refactor sendMessage into sendToTelegram, sendToMax, sendToPechkin methods.
+1.1.0: Added direct Telegram Bot API support with pechkin_secret fallback and error logging.
+1.1.1: Moved configuration into Backend Settings model, removed physical config file, added settings migration.
+1.1.2: Fix direct Telegram API call, persist generated pechkin_secret, improve error handling, return accurate send status.
+1.1.3: OctoberCMS 4.x compatibility. Fallback uses canonical API v1 endpoint with Bearer auth and X-Site-Name header. Supports DMDEV_API_BASE_URL env override. Fix Settings model visibility, remove debug log, add LICENSE and marketplace-ready composer.json.
+1.2.0: Add MAX messenger support via platform-api.max.ru. New settings max_bot_token and max_chat_id. Messages sent to Telegram and MAX simultaneously when both configured. MAX text auto-converted from HTML to plain-text. Pechkin fallback used only when neither Telegram nor MAX is configured.
