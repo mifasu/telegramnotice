@@ -1,13 +1,12 @@
 <?php namespace Dmdev\Telegramnotice;
 
-use Backend;
 use System\Classes\PluginBase;
 use Dmdev\Telegramnotice\Models\Settings;
 
 /**
  * Plugin Information File
  *
- * @link https://docs.octobercms.com/3.x/extend/system/plugins.html
+ * @link https://docs.octobercms.com/4.x/extend/system/plugins.html
  */
 class Plugin extends PluginBase
 {
@@ -20,7 +19,7 @@ class Plugin extends PluginBase
             'name' => 'Telegram Notice',
             'description' => 'Send frontend form submissions to Telegram via direct Bot API or fallback proxy.',
             'author' => 'Denis Mishin',
-            'icon' => 'icon-telegram'
+            'icon' => 'icon-paper-plane'
         ];
     }
 
@@ -40,7 +39,7 @@ class Plugin extends PluginBase
             'settings' => [
                 'label' => 'Telegram Notice',
                 'description' => 'Configure Telegram bot token and chat id',
-                'icon' => 'icon-telegram',
+                'icon' => 'icon-paper-plane',
                 'class' => 'Dmdev\\Telegramnotice\\Models\\Settings',
                 'order' => 500,
                 'keywords' => 'telegram bot chat'

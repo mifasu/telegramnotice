@@ -12,8 +12,8 @@ class Settings extends Model
     // Reference to field configuration
     public $settingsFields = 'fields.yaml';
 
-    // Default values
-    public static $defaultValues = [
+    // Default values for settings fields
+    protected $defaultValues = [
         'bot_token' => '',
         'chat_id' => '',
         'pechkin_secret' => '',

@@ -1,0 +1,18 @@
+# Composer vendor directory
+/vendor/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+
+# Environment files
+.env
+.env.*
+
+# Old config file (replaced by Backend Settings)
+config/telegram.php

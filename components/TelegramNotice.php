@@ -9,7 +9,7 @@ use Dmdev\Telegramnotice\Models\Settings;
 /**
  * TelegramNotice Component
  *
- * @link https://docs.octobercms.com/3.x/extend/cms-components.html
+ * @link https://docs.octobercms.com/4.x/extend/cms-components.html
  */
 class TelegramNotice extends ComponentBase
 {
@@ -82,7 +82,7 @@ class TelegramNotice extends ComponentBase
         }
     }
 
-    function sendTelegram($text)
+    protected function sendTelegram($text)
     {
         // Read settings from backend settings model
         $settings = Settings::instance();
@@ -113,11 +113,9 @@ class TelegramNotice extends ComponentBase
             curl_close($ch);
 
             if ($errno !== 0) {
-                Log::channel('daily')->error('TelegramNotice: cURL error while sending to Telegram API', [
+                Log::error('TelegramNotice: cURL error while sending to Telegram API', [
                     'errno' => $errno,
-                    'text' => $text,
                     'url' => $url,
-                    'post' => $postFields,
                 ]);
                 // Failed to call Telegram API; fallback to existing service
             } else {
@@ -127,12 +125,10 @@ class TelegramNotice extends ComponentBase
                     return true;
                 }
 
-                Log::channel('daily')->error('TelegramNotice: Telegram API returned error or unexpected response', [
+                Log::error('TelegramNotice: Telegram API returned error or unexpected response', [
                     'http_code' => $httpCode,
                     'response' => $result,
-                    'text' => $text,
                     'url' => $url,
-                    'post' => $postFields,
                 ]);
                 // fallback to dmdev.ru
             }
@@ -163,7 +159,7 @@ class TelegramNotice extends ComponentBase
                 $settings->pechkin_secret = $pechkinSecret;
                 $settings->save();
             } catch (\Exception $e) {
-                Log::channel('daily')->warning('TelegramNotice: could not save generated pechkin_secret to settings', [
+                Log::warning('TelegramNotice: could not save generated pechkin_secret to settings', [
                     'exception' => $e->getMessage(),
                 ]);
             }
@@ -174,14 +170,6 @@ class TelegramNotice extends ComponentBase
 
         $apiBase = rtrim(env('DMDEV_API_BASE_URL', 'https://dmdev.ru'), '/');
         $fallbackUrl = $apiBase.'/api/v1/pechkin/sendMessage';
-
-        Log::channel('daily')->info('TelegramNotice: using pechkin_secret for fallback', [
-            'sitename' => $sitename,
-            'pechkin_secret' => $pechkinSecret,
-            'token' => $token,
-            'fallback_url' => $fallbackUrl,
-            'api_base' => $apiBase,
-        ]);
 
         $postFields = ['text' => $text, 'parse_mode' => 'HTML'];
         $headers = [
@@ -205,25 +193,20 @@ class TelegramNotice extends ComponentBase
         curl_close($ch);
 
         if ($errno !== 0 || $httpCode < 200 || $httpCode >= 300) {
-            Log::channel('daily')->error('TelegramNotice: error while sending to fallback dmdev API', [
+            Log::error('TelegramNotice: error while sending to fallback dmdev API', [
                 'errno' => $errno,
                 'http_code' => $httpCode,
-                'response' => $result,
                 'fallback_url' => $fallbackUrl,
-                'api_base' => $apiBase,
-                'text' => $text,
             ]);
             return false;
         }
 
         $decoded = json_decode($result, true);
         if (!is_array($decoded) || empty($decoded['ok'])) {
-            Log::channel('daily')->error('TelegramNotice: DMDEV API returned unexpected response', [
+            Log::error('TelegramNotice: DMDEV API returned unexpected response', [
                 'response' => $result,
                 'http_code' => $httpCode,
                 'fallback_url' => $fallbackUrl,
-                'api_base' => $apiBase,
-                'text' => $text,
             ]);
             return false;
         }
