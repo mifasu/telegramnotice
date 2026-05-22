@@ -152,6 +152,7 @@ If you previously used `plugins/dmdev/telegramnotice/config/telegram.php`, the p
 
 | Version | Notes |
 |---|---|
+| 1.2.1 | Relax `composer/installers` constraint for compatibility with current OctoberCMS / Composer dependency trees. |
 | 1.2.0 | Add MAX messenger support. New settings: `max_bot_token`, `max_chat_id`. Routing: Telegram if set, MAX if set, both simultaneously if both set, Pechkin fallback when neither is configured. MAX text is auto-converted from HTML to plain-text. |
 | 1.1.3 | OctoberCMS 4.x compatibility. Fallback uses new canonical API v1 endpoint with Bearer auth. Clean imports, fix Settings model, remove sensitive debug log, standardise Log facade, fix HTML typo. Add LICENSE, marketplace-ready composer.json. |
 | 1.1.2 | Fix direct Telegram API call (no URL-encoded token), persist `pechkin_secret`, return real send status, improve error handling. |

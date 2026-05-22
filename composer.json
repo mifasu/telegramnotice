@@ -13,7 +13,7 @@
         }
     ],
     "require": {
-        "composer/installers": "~1.0",
-        "october/rain": ">=4.0"
+            "composer/installers": "^1.12 || ^2.0",
+            "october/rain": "^4.0"
     }
 }
