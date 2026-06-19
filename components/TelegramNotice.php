@@ -47,28 +47,34 @@ class TelegramNotice extends ComponentBase
 
     public function onTelegramNoticeSendForm()
     {
-        // Accept multiple possible input names to be tolerant with theme templates
         $rawPhone = input('ph') ?? input('contact') ?? input('phone') ?? input('phone_number');
-        $phone_number = preg_replace('/[^0-9.+]/', '', $rawPhone ?? '');
+        $phone_number = $this->normalizePhone($rawPhone);
 
-        $rawName = input('nm') ?? input('name') ?? input('fullname');
-        $name = preg_replace("/&#?[a-z0-9]+;/i", '', $rawName ?? '');
-
-        $tag  = preg_replace("/&#?[a-z0-9]+;/i", '', input('tag')  ?? '');
-        $from = preg_replace("/&#?[a-z0-9]+;/i", '', input('from') ?? '');
+        $name = $this->tgEscape(input('nm') ?? input('name') ?? input('fullname') ?? '');
+        $tag  = $this->tgEscape(input('tag')  ?? '');
+        $from = $this->tgEscape(input('from') ?? '');
 
         $arr = null;
         $inputArr = input('arr');
         if (is_array($inputArr)) {
-            foreach ($inputArr as $key => $arrValue) {
-                $clean = preg_replace("/&#?[a-z0-9]+;/i", '', $arrValue);
-                $arr   = ($key === array_key_first($inputArr)) ? $clean : $arr . "\n" . $clean;
+            foreach ($inputArr as $arrValue) {
+                // Skip nested arrays / objects that would stringify to "Array"
+                if (!is_scalar($arrValue)) {
+                    continue;
+                }
+                $clean = $this->tgEscape((string) $arrValue);
+                $arr   = ($arr === null) ? $clean : $arr . "\n" . $clean;
             }
         }
 
         $text = 'Сайт: ' . preg_replace('/^https?:\/\//', '', URL::to('/'));
-        if (!empty($from))              $text .= "\n<b>" . $from . '</b>';
-        elseif (!empty($this->page->title)) $text .= "\n" . $this->page->title;
+        $pageTitle = $this->tgEscape($this->page->title ?? '');
+
+        if (!empty($from)) {
+            $text .= "\n<b>" . $from . '</b>';
+        } elseif (!empty($pageTitle)) {
+            $text .= "\n" . $pageTitle;
+        }
         if (!empty($name))         $text .= "\nИмя: <code>" . $name . '</code>';
         if (!empty($phone_number)) $text .= "\nТел.: <code>" . $phone_number . '</code>';
         if (!empty($tag))          $text .= "\n" . $tag;
@@ -78,6 +84,36 @@ class TelegramNotice extends ComponentBase
             $ok = $this->sendMessage($text);
             $this->page['result'] = $ok;
         }
+    }
+
+    private function tgEscape($value, int $maxLength = 1000): string
+    {
+        if (!is_scalar($value)) {
+            return '';
+        }
+
+        $value = trim((string) $value);
+
+        if ($maxLength > 0) {
+            if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+                if (mb_strlen($value) > $maxLength) {
+                    $value = mb_substr($value, 0, $maxLength);
+                }
+            } elseif (strlen($value) > $maxLength) {
+                $value = substr($value, 0, $maxLength);
+            }
+        }
+
+        return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+
+    private function normalizePhone($value): string
+    {
+        if (!is_scalar($value)) {
+            return '';
+        }
+
+        return preg_replace('/[^0-9.+]/', '', (string) $value) ?: '';
     }
 
     /**
@@ -140,8 +176,8 @@ class TelegramNotice extends ComponentBase
 
         if ($errno !== 0) {
             Log::error('TelegramNotice: cURL error sending to Telegram', [
-                'errno' => $errno,
-                'url'   => $url,
+                'errno'   => $errno,
+                'chat_id' => $chatId,
             ]);
             return false;
         }

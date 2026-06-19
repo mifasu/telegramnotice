@@ -7,3 +7,4 @@ v1.1.2: Fix direct Telegram API call, persist generated pechkin_secret, improve 
 v1.1.3: OctoberCMS 4.x compatibility. Fallback uses canonical API v1 endpoint with Bearer auth and X-Site-Name header. Supports DMDEV_API_BASE_URL env override. Fix Settings model visibility, remove debug log, add LICENSE and marketplace-ready composer.json.
 v1.2.0: Add MAX messenger support via platform-api.max.ru. New settings max_bot_token and max_chat_id. Messages sent to Telegram and MAX simultaneously when both configured. MAX text auto-converted from HTML to plain-text. Pechkin fallback used only when neither Telegram nor MAX is configured.
 v1.2.1: Relax composer/installers constraint to support modern OctoberCMS dependency trees and Composer 2 environments.
+v1.2.2: Security fix. Escape user-controlled input in Telegram HTML notifications to prevent HTML injection and clickable phishing links.
